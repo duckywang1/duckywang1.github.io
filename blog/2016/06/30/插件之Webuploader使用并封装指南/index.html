@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>插件之Webuploader使用并封装指南 | Duckywang | null</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  <meta name="theme-color" content="#3F51B5">
+  
+  
+  <meta name="keywords" content="FETeam - idianbang,前端插件使用,Team内部使用">
+  <meta name="description" content="首先需求是来源于&amp;lt;input type=&amp;quot;file&amp;quot; /&amp;gt;的样式很丑，一开始学习的美化是这样的(感谢网友提供的源代码展示)。做头像上传用到了jquery.cropbox.js，Base64码很好用不解释（同时也得把服务器的上限给调高）。后来由于业务需要传一个完整的图还有表单信息，于是探寻之下发现了WebUploader，于是就开始学习。
+对于该类插件，我的印象是初始">
+<meta property="og:type" content="article">
+<meta property="og:title" content="插件之Webuploader使用并封装指南">
+<meta property="og:url" content="http://duckywang1.github.io/blog/2016/06/30/插件之Webuploader使用并封装指南/index.html">
+<meta property="og:site_name" content="Duckywang">
+<meta property="og:description" content="首先需求是来源于&amp;lt;input type=&amp;quot;file&amp;quot; /&amp;gt;的样式很丑，一开始学习的美化是这样的(感谢网友提供的源代码展示)。做头像上传用到了jquery.cropbox.js，Base64码很好用不解释（同时也得把服务器的上限给调高）。后来由于业务需要传一个完整的图还有表单信息，于是探寻之下发现了WebUploader，于是就开始学习。
+对于该类插件，我的印象是初始">
+<meta property="og:updated_time" content="2016-06-30T17:16:10.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="插件之Webuploader使用并封装指南">
+<meta name="twitter:description" content="首先需求是来源于&amp;lt;input type=&amp;quot;file&amp;quot; /&amp;gt;的样式很丑，一开始学习的美化是这样的(感谢网友提供的源代码展示)。做头像上传用到了jquery.cropbox.js，Base64码很好用不解释（同时也得把服务器的上限给调高）。后来由于业务需要传一个完整的图还有表单信息，于是探寻之下发现了WebUploader，于是就开始学习。
+对于该类插件，我的印象是初始">
+  
+    <link rel="alternative" href="/atom.xml" title="Duckywang" type="application/atom+xml">
+  
+  <meta name="summary" content="小学生放暑假打前端工程师">
+  <link rel="shortcut icon" href="/blog/favicon.ico">
+  <link rel="stylesheet" href="/blog/css/style.css">
+</head>
+
+<body>
+  <div id="loading" class="active"></div>
+
+  <nav id="menu" class="hide" >
+   <div class="inner flex-row-vertical">
+  <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menu-off">
+      <i class="icon icon-lg icon-close"></i>
+  </a>
+  <div class="brand-wrap">
+    <div class="brand">
+      <a href="/" class="avatar"><img src="/img/logo.jpg"></a>
+      <hgroup class="introduce">
+        <h5 class="nickname">Duckywang</h5>
+        <a href="mailto:undefined" title="634206017@qq.com" class="mail">634206017@qq.com</a>
+      </hgroup>
+    </div>
+  </div>
+  <ul class="nav flex-col">
+    
+        <li class="waves-block waves-effect">
+          <a href="/blog/"  >
+            <i class="icon icon-lg icon-home"></i>
+            主页
+          </a>
+        </li>
+    
+        <li class="waves-block waves-effect">
+          <a href="/blog/archives"  >
+            <i class="icon icon-lg icon-archives"></i>
+            Archives
+          </a>
+        </li>
+    
+        <li class="waves-block waves-effect">
+          <a href="/blog/tags"  >
+            <i class="icon icon-lg icon-tags"></i>
+            Tags
+          </a>
+        </li>
+    
+        <li class="waves-block waves-effect">
+          <a href="https://github.com/yscoder" target="_blank" >
+            <i class="icon icon-lg icon-github"></i>
+            Github
+          </a>
+        </li>
+    
+        <li class="waves-block waves-effect">
+          <a href="http://www.weibo.com/ysweb" target="_blank" >
+            <i class="icon icon-lg icon-weibo"></i>
+            Weibo
+          </a>
+        </li>
+    
+        <li class="waves-block waves-effect">
+          <a href="/blog/404"  >
+            <i class="icon icon-lg icon-link"></i>
+            测试
+          </a>
+        </li>
+    
+  </ul>
+
+  <footer class="footer">
+  <p><a rel="license" target="_blank" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="Creative Commons License" style="border-width:0;vertical-align:middle;" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAAAPCAMAAABEF7i9AAAAllBMVEUAAAD///+rsapERER3d3eIiIjMzMzu7u4iIiKUmZO6v7rKzsoODg4RERFVVVUNDQ0NDg0PEA8zMzNLTEtbXltmZmZydnF9gn2AgICPkI+ZmZmqqqq7u7vFxsXIzMgNDQwZGRkgICAhISEkJSMnKCcuMC4xMzE5Ozk7PTtBQkFCQkJDQ0Nna2eGhoaHh4ezuLLGysbd3d1wVGpAAAAA4UlEQVR42q2T1xqCMAyFk7QsBQeKA9x7j/d/OSm22CpX0nzcpA1/T05aAOuBVkMAScQFHLnEwoCo2f1TnQIGoVMewjZEjVFN4GH1Ue1Cn2jWqwfsOOj6wDwGvotsl/c8lv7KIq1eLOsT0HMFHMIE/RZyHnlphryT9zyV+8WH5e8yQw3wnQvgAFxPTKUVi555SHR/lOfLMgVTeDlSfN+TaoUsiTyeIm+bCkHvCA2FUKG48LDtYBZBknsYP/G8NTw0gaaHyuQf4H5pecrB/FYCT2sL9zAfy1Xyjou6L8X2W7YcLyBZCRtnq/zfAAAAAElFTkSuQmCC" /></a></p>
+  <p>Duckywang &copy; 2016</p>
+  <p>Power by <a href="http://hexo.io/" target="_blank">Hexo</a> Theme
+  <a href="https://github.com/yscoder/hexo-theme-indigo" target="_blank">indigo</a></p>
+  <a href="/atom.xml" target="_blank" class="rss" title="rss"><i class="icon icon-2x icon-rss-square"></i></a>
+</footer>
+
+</div>
+
+  </nav>
+  <main id="main">
+    <header class="header" id="header">
+    <div class="flex-row">
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light on" id="menu-toggle">
+          <i class="icon icon-lg icon-navicon"></i>
+        </a>
+        <div class="flex-col header-title ellipsis">插件之Webuploader使用并封装指南</div>
+        
+        <div class="search-wrap" id="search-wrap">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
+                <i class="icon icon-lg icon-chevron-left"></i>
+            </a>
+            <input type="text" id="key" class="search-input " autocomplete="off" placeholder="输入感兴趣的关键字">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="search">
+                <i class="icon icon-lg icon-search"></i>
+            </a>
+        </div>
+        
+        
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menu-share">
+            <i class="icon icon-lg icon-share-alt"></i>
+        </a>
+        
+    </div>
+</header>
+<header class="content-header">
+  <div class="container">
+    <h1 class="author">插件之Webuploader使用并封装指南</h1>
+    <h5 class="subtitle">
+          
+            <time datetime="2016-06-30T15:05:26.000Z" itemprop="datePublished" class="page-time">
+  2016-06-30
+</time>
+
+
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/blog/categories/前端/">前端</a></li></ul>
+ 
+        
+    </h5>
+  </div>
+</header>
+
+    <div class="container body-wrap">
+      <article id="post-插件之Webuploader使用并封装指南" 
+  class="article article-type-post" itemprop="blogPost">
+    <div class="post-meat flex-row">
+        
+	<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/blog/tags/FETeam-idianbang/">FETeam - idianbang</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/blog/tags/Team内部使用/">Team内部使用</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/blog/tags/前端插件使用/">前端插件使用</a></li></ul>
+
+    </div>
+    <div class="post-body">
+        <aside class="post-widget" id="post-widget">
+
+            
+            <div class="post-share" id="post-share">
+    <div class="tit">分享到：</div>
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" href="javascript:;" data-title="微博" data-service="tsina">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns" href="javascript:;" data-title="微信" data-service="weixin">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" href="javascript:;" data-title=" QQ" data-service="cqq">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" href="javascript:;" data-title=" Facebook" data-service="fb">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" href="javascript:;" data-title=" Twitter" data-service="twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="douban share-sns" href="javascript:;" data-title="豆瓣" data-service="douban">
+          豆
+        </a>
+      </li>
+    </ul>
+ </div>
+
+            
+
+            
+            <nav class="post-toc-wrap" id="post-toc">
+            <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#原生的webuploader调用并美化"><span class="post-toc-text">原生的webuploader调用并美化</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#封装的webuploader调用并美化"><span class="post-toc-text">封装的webuploader调用并美化</span></a></li></ol></li></ol>
+            </nav>
+            
+        </aside>
+
+        <div class="post-main">
+
+            <div class="post-content" id="post-content" itemprop="postContent">
+            <p>首先需求是来源于<code>&lt;input type=&quot;file&quot; /&gt;</code>的样式很丑，<a href="http://runjs.cn/code/o6hd2bm1" target="_blank" rel="external">一开始学习的美化</a>是这样的(感谢网友提供的源代码展示)。做头像上传用到了<a href="https://github.com/acornejo/jquery-cropbox" target="_blank" rel="external">jquery.cropbox.js</a>，Base64码很好用不解释（同时也得把服务器的上限给调高）。后来由于业务需要传一个完整的图还有表单信息，于是探寻之下发现了<a href="http://fex.baidu.com/webuploader/" target="_blank" rel="external">WebUploader</a>，于是就开始学习。</p>
+<p>对于该类插件，我的印象是初始化，调用，写回调（上传前后该干嘛）。于是我从<a href="http://fex.baidu.com/webuploader/getting-started.html" target="_blank" rel="external">Getting-started</a>上手，嗯！知道了要写dom结构，要放css，要放js，要调参数，要初始化，要写回调。</p>
+<h1 id="原生的webuploader调用并美化"><a href="#原生的webuploader调用并美化" class="headerlink" title="原生的webuploader调用并美化"></a>原生的webuploader调用并美化</h1><p>&lt;&lt; 封装版本的在更下面 &gt;&gt;  </p>
+<p>1.引入CSS／JS。过于简单不介绍了。<br>2.写DOM结构</p>
+<pre><code class="Html"><span class="comment">&lt;!-- 我这里删掉了Button，写自己的Button。其余结构不能删掉。--&gt;</span>
+<span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">"uploaderIDIDID"</span>&gt;</span>
+    <span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">"thelist"</span> <span class="attr">class</span>=<span class="string">"uploader-list"</span>&gt;</span><span class="tag">&lt;/<span class="name">div</span>&gt;</span>
+    <span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">"btns"</span>&gt;</span>
+        <span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">"picker"</span>&gt;</span>选择文件<span class="tag">&lt;/<span class="name">div</span>&gt;</span>
+    <span class="tag">&lt;/<span class="name">div</span>&gt;</span>
+<span class="tag">&lt;/<span class="name">div</span>&gt;</span>
+</code></pre>
+<p>3.写配置  </p>
+<pre><code>
+// js里面
+var uploader = WebUploader.create({
+    // swf文件路径
+    swf: BASE_URL + '/js/Uploader.swf',
+    // 文件接收服务端。
+    server: 'x x',
+    // 选择文件的按钮。可选。
+    // 内部根据当前运行是创建，可能是input元素，也可能是flash.
+    pick: '#filePicker',
+    // 只允许选择图片文件。
+    accept: {
+        title: 'Images',
+        extensions: 'gif,jpg,jpeg,bmp,png',
+        mimeTypes: 'image/*'
+    }
+});
+</code></pre>
+
+<p>4.写回调</p>
+<pre><code>
+// 写一堆函数说上传开始／进行时／成功要干嘛
+uploader.on('uploadProgress', func);
+uploader.on('uploadSuccess', func);
+</code></pre>
+
+<p>5.黑科技来啦，出发file表单</p>
+<pre><code>
+// 这里就是点击  自定义的选择框  时候
+$('自定义选择框').on('click', function () {
+  // 这时候就选择了文件，触发了自己想要做的事情
+  $('#' + 'uploaderIDIDID' + ' .webuploader-element-invisible').trigger('click').on('change', function () {
+    var fileInfoArr = uploader.getFiles(); //能拿到信息啦！
+    });  
+});
+</code></pre>
+6.提交信息
+<pre><code>
+// 这里就是点击  自定义的选择框  时候
+$('submitBtn').on('click', function () {
+  uploader.upload();
+});
+</code></pre>
+
+<h2 id="封装的webuploader调用并美化"><a href="#封装的webuploader调用并美化" class="headerlink" title="封装的webuploader调用并美化"></a>封装的webuploader调用并美化</h2><p>1.引入CSS／JS。过于简单不介绍了。<br>2.写DOM结构（通过JS，在初始化前进行插入dom）<br>3.写配置</p>
+<pre><code>
+例如上传图片  
+第一层每项几乎必填，createParams不是每个都填  
+apiAddress API地址
+fileSize 单位字节, 1M = 1048576 = 1024 * 1024
+prefix 与下面的 createParams.pick 息息相关，定义好名字，不要与HTML中别的ID冲突
+
+createParams.swf 已经配好  
+createParams.server API地址  
+createParams.file 看API的file应该叫什么字段  
+createParams.pick 等于 '#' + prefix + 'picker'  
+createParams.formData API中除了文件别的字段，可以通过 路径到.uploader.options('formData', {xx:xx});  这个API来填充
+createParams.method GET还是POST请求
+createParams.extensions/mimeTypes 两者关系一一对应的。网上有表可查。用于限制上传文件的类型
+
+var uploaderParams = {
+  BASE_URL: aUtils.BASE_URL,
+  apiAddress: '/uploadImg',
+  fileSize: 1048576,
+  prefix: 'createLesson',
+  cb_uploadSuccess: 路径到.cbUploader_uploadSuccess,
+  createParams: {
+    swf: aUtils.BASE_URL + '/webUploader/Uploader.swf',
+    server: aUtils.BASE_URL + '/uploadUserImg',
+    fileVal: 'file',
+    pick: '#createLessonpicker',
+    resize: false,
+    formData: {},
+    method: 'POST',
+    extensions: 'gif,jpg,jpeg,bmp,png',
+    mimeTypes: 'image/*',
+  },
+};
+</code></pre>
+4.写函数
+<pre><code>
+// 函数的路径定好，这里写匿名函数只是为了方便看
+1.
+cbUploader_uploadSuccess: function(file, response) {
+  // 放在 <配置> 里面
+  // 上传成功后做的函数
+};
+
+2.
+$('选择框').on('click', function () {
+  // 先清空上一次选的文件
+  路径到.uploaderObj.uploader.reset();
+  // 触发file的change事件，这个匿名函数不用迁移
+  $('#' + 路径到.uploaderObj.pickerId + ' .webuploader-element-invisible').trigger('click').on('change', function () {
+    var fileInfoArr = uploader.getFiles(); //能拿到信息啦！展现什么的
+    });  
+});
+
+3.
+$('提交按钮').on('click', function() {
+  // 检查数据
+  // 假设数据没问题，则调用下面的这个upload方法
+  路径到.uploaderObj.uploader.upload();
+});
+</配置></code></pre>
+
+<p>分模块写好～</p>
+
+            <blockquote>
+                <p>
+                本文地址：
+                <a href="http://duckywang1.github.io/blog/blog/2016/06/30/插件之Webuploader使用并封装指南/" target="_blank" rel="external">http://duckywang1.github.io/blog/blog/2016/06/30/插件之Webuploader使用并封装指南/</a>
+                </p>
+                <footer><cite><a href="http://duckywang1.github.io/blog">@Duckywang</a></cite></footer>
+            </blockquote>
+            </div>
+            
+<nav class="post-nav">
+  
+    <div class="waves-block waves-effect prev fl">
+      <a href="/blog/2016/07/01/layer封装与调用/" id="post-prev" class="post-nav-link">
+        <div class="tips"><i class="icon icon-angle-left icon-lg icon-pr"></i> Prev</div>
+        <h4 class="title">layer封装与调用</h4>
+      </a>
+    </div>
+  
+
+  
+</nav>
+
+
+            
+            
+<div class="duoshuo">
+	<!-- 多说评论框 start -->
+	<div class="ds-thread" data-thread-key="插件之Webuploader使用并封装指南" data-title="插件之Webuploader使用并封装指南" data-url="http://duckywang1.github.io/blog/2016/06/30/插件之Webuploader使用并封装指南/index.html"></div>
+	<!-- 多说评论框 end -->
+	<!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+	<script type="text/javascript">
+	var duoshuoQuery = {short_name:"ysblog"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		 || document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+	<!-- 多说公共JS代码 end -->
+</div>
+
+
+
+
+
+        </div>
+    </div>
+</article>
+    </div>
+  </main>
+<div class="mask" id="mask"></div>
+<a href="javascript:;" id="gotop" class="waves-effect waves-circle waves-light"><span class="icon icon-lg icon-chevron-up"></span></a>
+
+<script>
+var BLOG_SHARE = {
+    title: "插件之Webuploader使用并封装指南",
+    pic: "/img/logo.jpg",
+    summary: document.getElementsByName('summary')[0].content,
+    url: "http://duckywang1.github.io/blog/2016/06/30/插件之Webuploader使用并封装指南/index.html"
+};
+</script>
+<div class="global-share" id="global-share">
+    <div class="tit">分享到：</div>
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" href="javascript:;" data-title="微博" data-service="tsina">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns" href="javascript:;" data-title="微信" data-service="weixin">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" href="javascript:;" data-title=" QQ" data-service="cqq">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" href="javascript:;" data-title=" Facebook" data-service="fb">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" href="javascript:;" data-title=" Twitter" data-service="twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="douban share-sns" href="javascript:;" data-title="豆瓣" data-service="douban">
+          豆
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+
+<script src="//cdn.bootcss.com/node-waves/0.7.4/waves.min.js"></script>
+
+<script src="/blog/js/main.js"></script>
+
+
+
+<div class="search-panel" id="search-panel">
+    <ul class="search-result" id="search-result"></ul>
+</div>
+<script type="text/template" id="search-tpl">
+<li class="item">
+    <a href="/{path}" class="waves-block waves-effect">
+        <div class="title ellipsis" title="{title}">{title}</div>
+        <div class="flex-row flex-middle">
+            <div class="tags ellipsis">
+                {tags}
+            </div>
+            <time class="flex-col time">{date}</time>
+        </div>
+    </a>
+</li>
+</script>
+
+<script src="/blog/js/search.js"></script>
+
+
+
+
+
+
+
+
+
+</body>
+</html>

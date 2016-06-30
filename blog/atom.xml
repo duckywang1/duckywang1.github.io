@@ -1,0 +1,311 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Duckywang</title>
+  
+  <link href="/blog/atom.xml" rel="self"/>
+  
+  <link href="http://duckywang1.github.io/blog/"/>
+  <updated>2016-06-30T17:22:22.000Z</updated>
+  <id>http://duckywang1.github.io/blog/</id>
+  
+  <author>
+    <name>Duckywang</name>
+    
+  </author>
+  
+  <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>JQ的Post封装</title>
+    <link href="http://duckywang1.github.io/blog/2016/07/01/JQ%E7%9A%84Post%E5%B0%81%E8%A3%85/"/>
+    <id>http://duckywang1.github.io/blog/2016/07/01/JQ的Post封装/</id>
+    <published>2016-06-30T17:17:04.000Z</published>
+    <updated>2016-06-30T17:22:22.000Z</updated>
+    
+    <content type="html">&lt;p&gt;JQ的优点balabala一大堆，不描述了。&lt;br&gt;这样封装解决的场景是：如果点击提交／注册，没有拦截的话，如果点多几次，就会重复提交，故封装一层。&lt;br&gt;使用方法&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;
+$(this).post();
+
+原生的是
+$.post();
+&lt;/code&gt;&lt;/pre&gt;
+源码  
+&lt;pre&gt;&lt;code&gt;
+嗯。。结合了layer做了个提示
+
+(function ($) {
+  $.fn.post = function (url, data, successfunc, type, needLoad) {
+      var el = this;
+      if ($(el).hasClass(&#39;postDisable&#39;)) {
+          return;
+      }
+      var needload = needLoad ? needLoad : 0;
+      if (needload == 0) {
+          var index = layer.load();
+      }
+
+      $.ajax({
+          url: url,
+          type: &#39;post&#39;,
+          cache: false,
+          data: data,
+          dataType: type || &quot;json&quot;,
+          beforeSend: function () {//触发ajax请求开始时执行
+              $(el).addClass(&quot;postDisable&quot;);
+          },
+          success: successfunc,
+          error: function () {//ajax发生错误时执行
+              $(el).removeClass(&quot;postDisable&quot;);
+              if (needload == 0) {
+                  layer.close(index);
+              }
+          },
+          complete: function () {//ajax请求完成时执行
+              $(el).removeClass(&quot;postDisable&quot;);
+              if (needload == 0) {
+                  layer.close(index);
+              }
+          }
+      });
+
+  };
+})(jQuery);
+&lt;/code&gt;&lt;/pre&gt;
+</content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;JQ的优点balabala一大堆，不描述了。&lt;br&gt;这样封装解决的场景是：如果点击提交／注册，没有拦截的话，如果点多几次，就会重复提交，故封装一层。&lt;br&gt;使用方法&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;
+$(this).post();
+
+原生的是
+$.post();
+&lt;/code
+    
+    </summary>
+    
+      <category term="前端" scheme="http://duckywang1.github.io/blog/categories/%E5%89%8D%E7%AB%AF/"/>
+    
+    
+      <category term="FETeam - idianbang" scheme="http://duckywang1.github.io/blog/tags/FETeam-idianbang/"/>
+    
+      <category term="前端插件使用" scheme="http://duckywang1.github.io/blog/tags/%E5%89%8D%E7%AB%AF%E6%8F%92%E4%BB%B6%E4%BD%BF%E7%94%A8/"/>
+    
+      <category term="Team内部使用" scheme="http://duckywang1.github.io/blog/tags/Team%E5%86%85%E9%83%A8%E4%BD%BF%E7%94%A8/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>layer封装与调用</title>
+    <link href="http://duckywang1.github.io/blog/2016/07/01/layer%E5%B0%81%E8%A3%85%E4%B8%8E%E8%B0%83%E7%94%A8/"/>
+    <id>http://duckywang1.github.io/blog/2016/07/01/layer封装与调用/</id>
+    <published>2016-06-30T17:07:20.000Z</published>
+    <updated>2016-06-30T17:14:36.000Z</updated>
+    
+    <content type="html">&lt;p&gt;首先感谢&lt;a href=&quot;http://sentsin.com&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;贤心&lt;/a&gt;的开源弹窗插件&lt;a href=&quot;http://layer.layui.com/&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;layer.js&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;我们封装的调用是&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;
+$.layer({
+  title: &#39;必填的标题&#39;,
+  content: $(&#39;必填的dialog&#39;)
+}, &#39;必填600px&#39;, &#39;看窗口高度，选auto或90%&#39;);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;封装源码&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;
+写的还是有点缺点的，后面再改进。864px 太高了。。。
+
+(function ($) {
+  $.extend({
+      layer: function (options, LWidth, LHeight) {
+          var LWidth = LWidth || &quot;600px&quot;;
+          var LHeight = LHeight || &#39;90%&#39;;
+          if ($(window).height() &gt; 864) {
+              if (LHeight) {
+                  LHeight = LHeight;
+              } else {
+                  LHeight = &#39;864px&#39;;
+              }
+          }
+          var settings = $.extend({
+              type: 1,
+              shift: 0,
+              skin: &#39;layui-layer-demo&#39;,
+              title: false,
+              closeBtn: 1,
+              shadeClose: true,
+              move: false,
+              area: [LWidth, LHeight]
+          }, options);
+          return index = layer.open(settings);
+      }
+  })
+})(jQuery);
+&lt;/code&gt;&lt;/pre&gt;
+</content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;首先感谢&lt;a href=&quot;http://sentsin.com&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;贤心&lt;/a&gt;的开源弹窗插件&lt;a href=&quot;http://layer.layui.com/&quot; target=&quot;_blank&quot; rel=&quot;exter
+    
+    </summary>
+    
+      <category term="前端" scheme="http://duckywang1.github.io/blog/categories/%E5%89%8D%E7%AB%AF/"/>
+    
+    
+      <category term="FETeam - idianbang" scheme="http://duckywang1.github.io/blog/tags/FETeam-idianbang/"/>
+    
+      <category term="前端插件使用" scheme="http://duckywang1.github.io/blog/tags/%E5%89%8D%E7%AB%AF%E6%8F%92%E4%BB%B6%E4%BD%BF%E7%94%A8/"/>
+    
+      <category term="Team内部使用" scheme="http://duckywang1.github.io/blog/tags/Team%E5%86%85%E9%83%A8%E4%BD%BF%E7%94%A8/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>插件之Webuploader使用并封装指南</title>
+    <link href="http://duckywang1.github.io/blog/2016/06/30/%E6%8F%92%E4%BB%B6%E4%B9%8BWebuploader%E4%BD%BF%E7%94%A8%E5%B9%B6%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/"/>
+    <id>http://duckywang1.github.io/blog/2016/06/30/插件之Webuploader使用并封装指南/</id>
+    <published>2016-06-30T15:05:26.000Z</published>
+    <updated>2016-06-30T17:16:10.000Z</updated>
+    
+    <content type="html">&lt;p&gt;首先需求是来源于&lt;code&gt;&amp;lt;input type=&amp;quot;file&amp;quot; /&amp;gt;&lt;/code&gt;的样式很丑，&lt;a href=&quot;http://runjs.cn/code/o6hd2bm1&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;一开始学习的美化&lt;/a&gt;是这样的(感谢网友提供的源代码展示)。做头像上传用到了&lt;a href=&quot;https://github.com/acornejo/jquery-cropbox&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;jquery.cropbox.js&lt;/a&gt;，Base64码很好用不解释（同时也得把服务器的上限给调高）。后来由于业务需要传一个完整的图还有表单信息，于是探寻之下发现了&lt;a href=&quot;http://fex.baidu.com/webuploader/&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;WebUploader&lt;/a&gt;，于是就开始学习。&lt;/p&gt;
+&lt;p&gt;对于该类插件，我的印象是初始化，调用，写回调（上传前后该干嘛）。于是我从&lt;a href=&quot;http://fex.baidu.com/webuploader/getting-started.html&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;Getting-started&lt;/a&gt;上手，嗯！知道了要写dom结构，要放css，要放js，要调参数，要初始化，要写回调。&lt;/p&gt;
+&lt;h1 id=&quot;原生的webuploader调用并美化&quot;&gt;&lt;a href=&quot;#原生的webuploader调用并美化&quot; class=&quot;headerlink&quot; title=&quot;原生的webuploader调用并美化&quot;&gt;&lt;/a&gt;原生的webuploader调用并美化&lt;/h1&gt;&lt;p&gt;&amp;lt;&amp;lt; 封装版本的在更下面 &amp;gt;&amp;gt;  &lt;/p&gt;
+&lt;p&gt;1.引入CSS／JS。过于简单不介绍了。&lt;br&gt;2.写DOM结构&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;Html&quot;&gt;&lt;span class=&quot;comment&quot;&gt;&amp;lt;!-- 我这里删掉了Button，写自己的Button。其余结构不能删掉。--&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;tag&quot;&gt;&amp;lt;&lt;span class=&quot;name&quot;&gt;div&lt;/span&gt; &lt;span class=&quot;attr&quot;&gt;id&lt;/span&gt;=&lt;span class=&quot;string&quot;&gt;&quot;uploaderIDIDID&quot;&lt;/span&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;tag&quot;&gt;&amp;lt;&lt;span class=&quot;name&quot;&gt;div&lt;/span&gt; &lt;span class=&quot;attr&quot;&gt;id&lt;/span&gt;=&lt;span class=&quot;string&quot;&gt;&quot;thelist&quot;&lt;/span&gt; &lt;span class=&quot;attr&quot;&gt;class&lt;/span&gt;=&lt;span class=&quot;string&quot;&gt;&quot;uploader-list&quot;&lt;/span&gt;&amp;gt;&lt;/span&gt;&lt;span class=&quot;tag&quot;&gt;&amp;lt;/&lt;span class=&quot;name&quot;&gt;div&lt;/span&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;tag&quot;&gt;&amp;lt;&lt;span class=&quot;name&quot;&gt;div&lt;/span&gt; &lt;span class=&quot;attr&quot;&gt;class&lt;/span&gt;=&lt;span class=&quot;string&quot;&gt;&quot;btns&quot;&lt;/span&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;tag&quot;&gt;&amp;lt;&lt;span class=&quot;name&quot;&gt;div&lt;/span&gt; &lt;span class=&quot;attr&quot;&gt;id&lt;/span&gt;=&lt;span class=&quot;string&quot;&gt;&quot;picker&quot;&lt;/span&gt;&amp;gt;&lt;/span&gt;选择文件&lt;span class=&quot;tag&quot;&gt;&amp;lt;/&lt;span class=&quot;name&quot;&gt;div&lt;/span&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;tag&quot;&gt;&amp;lt;/&lt;span class=&quot;name&quot;&gt;div&lt;/span&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;tag&quot;&gt;&amp;lt;/&lt;span class=&quot;name&quot;&gt;div&lt;/span&gt;&amp;gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;3.写配置  &lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;
+// js里面
+var uploader = WebUploader.create({
+    // swf文件路径
+    swf: BASE_URL + &#39;/js/Uploader.swf&#39;,
+    // 文件接收服务端。
+    server: &#39;x x&#39;,
+    // 选择文件的按钮。可选。
+    // 内部根据当前运行是创建，可能是input元素，也可能是flash.
+    pick: &#39;#filePicker&#39;,
+    // 只允许选择图片文件。
+    accept: {
+        title: &#39;Images&#39;,
+        extensions: &#39;gif,jpg,jpeg,bmp,png&#39;,
+        mimeTypes: &#39;image/*&#39;
+    }
+});
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;4.写回调&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;
+// 写一堆函数说上传开始／进行时／成功要干嘛
+uploader.on(&#39;uploadProgress&#39;, func);
+uploader.on(&#39;uploadSuccess&#39;, func);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;5.黑科技来啦，出发file表单&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;
+// 这里就是点击  自定义的选择框  时候
+$(&#39;自定义选择框&#39;).on(&#39;click&#39;, function () {
+  // 这时候就选择了文件，触发了自己想要做的事情
+  $(&#39;#&#39; + &#39;uploaderIDIDID&#39; + &#39; .webuploader-element-invisible&#39;).trigger(&#39;click&#39;).on(&#39;change&#39;, function () {
+    var fileInfoArr = uploader.getFiles(); //能拿到信息啦！
+    });  
+});
+&lt;/code&gt;&lt;/pre&gt;
+6.提交信息
+&lt;pre&gt;&lt;code&gt;
+// 这里就是点击  自定义的选择框  时候
+$(&#39;submitBtn&#39;).on(&#39;click&#39;, function () {
+  uploader.upload();
+});
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&quot;封装的webuploader调用并美化&quot;&gt;&lt;a href=&quot;#封装的webuploader调用并美化&quot; class=&quot;headerlink&quot; title=&quot;封装的webuploader调用并美化&quot;&gt;&lt;/a&gt;封装的webuploader调用并美化&lt;/h2&gt;&lt;p&gt;1.引入CSS／JS。过于简单不介绍了。&lt;br&gt;2.写DOM结构（通过JS，在初始化前进行插入dom）&lt;br&gt;3.写配置&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;
+例如上传图片  
+第一层每项几乎必填，createParams不是每个都填  
+apiAddress API地址
+fileSize 单位字节, 1M = 1048576 = 1024 * 1024
+prefix 与下面的 createParams.pick 息息相关，定义好名字，不要与HTML中别的ID冲突
+
+createParams.swf 已经配好  
+createParams.server API地址  
+createParams.file 看API的file应该叫什么字段  
+createParams.pick 等于 &#39;#&#39; + prefix + &#39;picker&#39;  
+createParams.formData API中除了文件别的字段，可以通过 路径到.uploader.options(&#39;formData&#39;, {xx:xx});  这个API来填充
+createParams.method GET还是POST请求
+createParams.extensions/mimeTypes 两者关系一一对应的。网上有表可查。用于限制上传文件的类型
+
+var uploaderParams = {
+  BASE_URL: aUtils.BASE_URL,
+  apiAddress: &#39;/uploadImg&#39;,
+  fileSize: 1048576,
+  prefix: &#39;createLesson&#39;,
+  cb_uploadSuccess: 路径到.cbUploader_uploadSuccess,
+  createParams: {
+    swf: aUtils.BASE_URL + &#39;/webUploader/Uploader.swf&#39;,
+    server: aUtils.BASE_URL + &#39;/uploadUserImg&#39;,
+    fileVal: &#39;file&#39;,
+    pick: &#39;#createLessonpicker&#39;,
+    resize: false,
+    formData: {},
+    method: &#39;POST&#39;,
+    extensions: &#39;gif,jpg,jpeg,bmp,png&#39;,
+    mimeTypes: &#39;image/*&#39;,
+  },
+};
+&lt;/code&gt;&lt;/pre&gt;
+4.写函数
+&lt;pre&gt;&lt;code&gt;
+// 函数的路径定好，这里写匿名函数只是为了方便看
+1.
+cbUploader_uploadSuccess: function(file, response) {
+  // 放在 &lt;配置&gt; 里面
+  // 上传成功后做的函数
+};
+
+2.
+$(&#39;选择框&#39;).on(&#39;click&#39;, function () {
+  // 先清空上一次选的文件
+  路径到.uploaderObj.uploader.reset();
+  // 触发file的change事件，这个匿名函数不用迁移
+  $(&#39;#&#39; + 路径到.uploaderObj.pickerId + &#39; .webuploader-element-invisible&#39;).trigger(&#39;click&#39;).on(&#39;change&#39;, function () {
+    var fileInfoArr = uploader.getFiles(); //能拿到信息啦！展现什么的
+    });  
+});
+
+3.
+$(&#39;提交按钮&#39;).on(&#39;click&#39;, function() {
+  // 检查数据
+  // 假设数据没问题，则调用下面的这个upload方法
+  路径到.uploaderObj.uploader.upload();
+});
+&lt;/配置&gt;&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;分模块写好～&lt;/p&gt;
+</content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;首先需求是来源于&lt;code&gt;&amp;lt;input type=&amp;quot;file&amp;quot; /&amp;gt;&lt;/code&gt;的样式很丑，&lt;a href=&quot;http://runjs.cn/code/o6hd2bm1&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;一开
+    
+    </summary>
+    
+      <category term="前端" scheme="http://duckywang1.github.io/blog/categories/%E5%89%8D%E7%AB%AF/"/>
+    
+    
+      <category term="FETeam - idianbang" scheme="http://duckywang1.github.io/blog/tags/FETeam-idianbang/"/>
+    
+      <category term="前端插件使用" scheme="http://duckywang1.github.io/blog/tags/%E5%89%8D%E7%AB%AF%E6%8F%92%E4%BB%B6%E4%BD%BF%E7%94%A8/"/>
+    
+      <category term="Team内部使用" scheme="http://duckywang1.github.io/blog/tags/Team%E5%86%85%E9%83%A8%E4%BD%BF%E7%94%A8/"/>
+    
+  </entry>
+  
+</feed>
